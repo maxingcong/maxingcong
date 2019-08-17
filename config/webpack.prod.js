@@ -1,78 +1,31 @@
-const path = require('path');
-const webpack = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-// const webpackDevServer = require('webpack-dev-server');
-// console.log(CleanWebpackPlugin);
+const webpack = require('webpack');
+const merge = require('webpack-merge');
+const common = require('./webpack.common.js');
 
-// const options = {
-//   contentBase: 'dist',
-//   hot: true
-// }
-
-
-module.exports = {
-  context: path.resolve(__dirname, '../'),
-  mode: 'development',
-  // watch: true,
-  // target: 'node',
-  entry: {
-    // app:'./src/app.js',
-    main: './src/main.js'
-  },
-  devtool: 'inline-source-map',
-  devServer: {//开发服务器 编译目标文件夹，编译后是否热启动
-    contentBase: 'dist',
-    hot:true
-  },
-  module: {
-    rules: [//这里是loader配置 loader 被用于转换某些类型的模块
-      {//告诉webpack 当遇到css结尾的文件 需要使用use中的方法解析一下
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
-      },
-      {
-        test: /\.(png|svg|jpg|gif)$/,
-        use: [
-          'file-loader'
-        ]
-      },
-      {
-        test: /\.(woff|woff2|eot|ttf|otf)$/,
-        use: [
-          'file-loader'
-        ]
-      },
-      {
-        test: /\.(csv|tsv)$/,
-        use: [
-          'csv-loader'
-        ]
-      },
-      {
-        test: /\.xml$/,
-        use: [
-          'xml-loader'
-        ]
-      }
-    ]
-  },
+module.exports = merge(common, {
+  mode: 'production',
+  devtool: 'source-map',
   plugins: [
-    new webpack.NamedModulesPlugin(), //修补作用
-    new webpack.HotModuleReplacementPlugin(),//内置热替换插件
-    new CleanWebpackPlugin(),
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: 'src/index.html',
-      favicon: 'public/favicon.png',
-      inject: true
-    })//创建插件，应用对象
+    // new UglifyJSPlugin({ //这个压缩方式不支持es6语法 压缩时会进行报错
+    //   sourceMap: true
+
+    // }),
+//     在开发模式中，我们通常有一个 assets/ 文件夹，它往往存放在和首页一个级别的目录下。这样是挺方便；但是如果在生产环境下，你想把这些静态文件统一使用CDN加载，那该怎么办？
+// 想要解决这个问题，你可以使用有着悠久历史的环境变量。比如说，我们设置了一个名为 ASSET_PATH 的变量
+    new webpack.DefinePlugin({
+      'process.env.ASSET_PATH': JSON.stringify('production')
+    }),
+    new webpack.HashedModuleIdsPlugin({
+      hashFunction: 'sha256',
+      hashDigest: 'hex',
+      hashDigestLength: 20
+    })
   ],
-  output: {
-    filename: '[name].js',
-    path: path.resolve('dist')
+  optimization: {
+    minimizer: [
+      new UglifyJsPlugin({
+        test: /\.js(\?.*)?$/i,
+      }),
+    ]
   }
-};
+});

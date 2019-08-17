@@ -1,5 +1,5 @@
 import './assets/css/index.css'
-import  {printMe}  from './assets/js/index'
+// import  {printMe}  from './assets/js/index'
 // import Vue from 'vue'
 let arr = ['测试的1', '测试的5', '测试的4'];
 function component() {
@@ -9,16 +9,11 @@ function component() {
   element.innerHTML = 'Hello'
   // debugger
   document.body.appendChild(element);
-  console.log('这是一个数组' + arr + '123')
-  console.log('使用了热替换11111111')
-  // if (module.hot) {
-  //   debugger
-  //   module.hot.accept('./assets/js/index', function () {
-  //     console.log('Accepting the updated printMe module!');
-  //      debugger
-  //      printMe();
-  //   })
-  // }
+  console.log('这是一个数组' + arr + '123');
+  console.log('使用了热替换11111111');
+  console.log('这是对文件的热替换改进，已及对代码进行分离');
+  // printMe()
+
   return element;
 }
 component()
