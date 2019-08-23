@@ -1,24 +1,31 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const MiniCssExtractPlugin  = require("mini-css-extract-plugin");
-require('babel-polyfill');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+require('@babel/polyfill');
 
-// const webpack = require('webpack')
+function resolve(dir) {
+  return path.join(__dirname, '..', dir)
+}
 
 module.exports = {
   context: path.resolve(__dirname, '../'),
-  // mode: 'development',
-  // watch: true,
-  // target: 'node',
   entry: {
-    main: ['babel-polyfill','./src/main.js']
+    main: ['@babel/polyfill','./src/main.js']
   },
-  // devtool: 'inline-source-map',
-  // devServer: {//开发服务器 编译目标文件夹，编译后是否热启动
-  //   contentBase: 'dist',
-  //   hot:true
-  // },
+  resolve: {
+    extensions: ['.js', '.vue', '.json'],
+    alias: {
+      'vue$': 'vue/dist/vue.esm.js',
+      '@': resolve('src'),
+      '~': resolve('src'),
+      src: resolve('src'),
+      views: resolve('src/views'),
+      assets: resolve('src/assets'),
+      components: resolve('src/components')
+    }
+  },
   module: {
     rules: [//这里是loader配置 loader 被用于转换某些类型的模块
       {//告诉webpack 当遇到css结尾的文件 需要使用use中的方法解析一下
@@ -31,6 +38,15 @@ module.exports = {
             },
           },
           'css-loader'
+        ]
+      },
+      {
+        test: /\.less$/,
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          'less-loader',
+          'postcss-loader'
         ]
       },
       {
@@ -57,13 +73,26 @@ module.exports = {
           'xml-loader'
         ]
       },
-      { test: /\.js$/, exclude: /node_modules/, loader: 'babel', query: { presets: ['es2015']}},
+      {
+        test: /\.js|jsx$/,
+        loader: 'babel-loader',
+        exclude: file => (
+          /node_modules/.test(file) &&
+          !/\.vue\.js/.test(file)
+        )
+      },
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader',
+        options: {
+          hotReload: true // 关闭热重载
+        }
+      }
     ]
   },
   plugins: [
-    // new webpack.NamedModulesPlugin(), //修补作用
-    // new webpack.HotModuleReplacementPlugin(),//内置热替换插件
     new CleanWebpackPlugin(),
+    new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: 'src/index.html',
@@ -80,8 +109,8 @@ module.exports = {
     filename: '[name].js',
     path: path.resolve('dist')
   },
-  optimization: {//webpack4以后删除了CommonsChunkPlugin 处理重复文件的方法现在改用这个
-    splitChunks: {
+  optimization: {
+    splitChunks: {//webpack4以后删除了CommonsChunkPlugin  处理重复文件的方法现在改用这个
       chunks: 'async',
       minSize: 30000,
       maxSize: 0,
